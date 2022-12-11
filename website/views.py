@@ -1,43 +1,35 @@
-from flask import Blueprint, render_template, request, flash, jsonify, redirect
+from flask import Flask, Blueprint, render_template, request, flash, jsonify, redirect
 from flask_login import login_required, current_user
 from .models import Note
 from . import db
 import json
+from flask_mysqldb import MySQL
+from flask import jsonify
+from flask import request
+import pymysql
+from werkzeug.security import check_password_hash, generate_password_hash
+import pymysql
+
+conn = pymysql.connect(
+    user="root",
+    password="", #GANTI PASSWORDNYA
+    host="127.0.0.1",
+    port=3306,
+    database="tubestst",
+    cursorclass=pymysql.cursors.DictCursor,
+    autocommit=True
+)
 
 views = Blueprint('views', __name__)
+mysql = MySQL(views)
+cur = conn.cursor()
+views.config['SECRET_TOKEN'] = 'aduhAPIpanas'
 
 
 @views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
-    if request.method == 'POST':
-        note = request.form.get('note')
-
-        if len(note) < 1:
-            flash('Note is too short!', category='error')
-        else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Note added!', category='success')
-    
     return render_template("home.html", user=current_user)
-
-    
-
-
-@views.route('/delete-note', methods=['POST'])
-def delete_note():
-    note = json.loads(request.data)
-    noteId = note['noteId']
-    note = Note.query.get(noteId)
-    if note:
-        if note.user_id == current_user.id:
-            db.session.delete(note)
-            db.session.commit()
-
-    return jsonify({})
-
 
 @views.route("/ecommerce", methods = ['GET'])
 def ecommerce():
@@ -45,8 +37,8 @@ def ecommerce():
 
 @views.route("/ecommerce/getall", methods = ['GET'])
 def ecommerce():
-    db.session.execute("SELECT * FROM ecommerce")
-    rv = db.session.fetchall()  
+    cur.execute("SELECT * FROM ecommerce")
+    rv = cur.fetchall()  
     return jsonify(rv)
 
 @views.route("/uscovid", methods = ['GET'])
@@ -55,8 +47,8 @@ def uscovid():
 
 @views.route("/uscovid/getall", methods = ['GET'])
 def uscovid():
-    db.session.execute("SELECT * FROM uscovid")
-    rv = db.session.fetchall()  
+    cur.execute("SELECT * FROM uscovid")
+    rv = cur.fetchall()  
     return jsonify(rv)
 
 @views.route("/uscovid/insert", methods=['POST'])
@@ -68,7 +60,7 @@ def insertuscovid():
         request.args.get('county'), 
         request.args.get('state'), 
         request.args.get('cases',type=int))            
-        db.session.execute(sqlQuery, bindData)
+        cur.execute(sqlQuery, bindData)
         response = jsonify('Covid data added successfully!')
         response.status_code = 200
         return response
@@ -83,7 +75,7 @@ def updateuscovid():
         request.args.get('state'), 
         request.args.get('cases', type=int), 
         request.args.get('date'))
-        db.session.execute(sqlQuery, bindData)
+        cur.execute(sqlQuery, bindData)
         response = jsonify('Covid data updated successfully!')
         response.status_code = 200
         return response
@@ -96,7 +88,7 @@ def deleteuscovid():
         sqlQuery = "DELETE from uscovid where county=%s and state=%s"
         bindData = (request.args.get('county'), 
         request.args.get('state'))
-        db.session.execute(sqlQuery, bindData)
+        cur.execute(sqlQuery, bindData)
         response = jsonify('Covid data deleted successfully!')
         response.status_code = 200
         return response
@@ -123,7 +115,7 @@ def insertecommerce():
         request.args.get('quantity_ordered',type=int), 
         request.args.get('price_each',type=int),           
         request.args.get('city'))           
-        db.session.execute(sqlQuery, bindData)
+        cur.execute(sqlQuery, bindData)
         response = jsonify('Ecommerce data added successfully!')
         response.status_code = 200
         return response
@@ -139,7 +131,7 @@ def updateecommerce():
         request.args.get('price_each', type=int), 
         request.args.get('city'),
         request.args.get('order_id',type=int))
-        db.session.execute(sqlQuery, bindData)
+        cur.execute(sqlQuery, bindData)
         response = jsonify('Ecommerce data updated successfully!')
         response.status_code = 200
         return response
@@ -151,7 +143,7 @@ def deleteecommerce():
     try:		
         sqlQuery = "DELETE from ecommerce where order_id=%s"
         bindData = (request.args.get('order_id',type=int))
-        db.session.execute(sqlQuery, bindData)
+        cur.execute(sqlQuery, bindData)
         response = jsonify('Ecommerce deleted successfully!')
         response.status_code = 200
         return response
