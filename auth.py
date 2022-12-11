@@ -1,40 +1,38 @@
-from flask import Flask, jsonify, request, make_response, render_template
-import jwt
-import datetime
-from functools import wraps
+from flask import Blueprint, render_template, request, flash, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import login_user, login_required, logout_user, current_user
+import pymysql
 
-appFlask = Flask(__name__)
-appFlask.config['SECRET_KEY'] = 'aduhAPIpanas'
+auth = Blueprint('auth', __name__)
+conn = pymysql.connect(
+    user="root",
+    password="", #GANTI PASSWORDNYA
+    host="127.0.0.1",
+    port=3306,
+    database="tubestst",
+    cursorclass=pymysql.cursors.DictCursor,
+    autocommit=True
+)
 
-def token_required(f):
-    @wraps(f)
-    def token_dec(*args, **kwargs):
-        token = request.args.get('token')
-        if not token:
-            return "Missing Token!"
-        try:
-            data = jwt.decode(token, appFlask.config['SECRET_KEY'])
-        except:
-            return "Invalid Token"
-        return f(*args, **kwargs)
-    return token_dec
+cur = conn.cursor()
 
-@appFlask.route('/insecured')
-def insecured():
-    return "This resource is public. Anyone can access this"
-
-@appFlask.route('/secured')
-@token_required
-def secured():
-    return "You are authenticated to see the resource"
-
-@appFlask.route('/login')
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
-    userAuth = request.authorization
-    if userAuth and userAuth.password == 'secret':
-        token = jwt.encode({'user' : userAuth.username, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(seconds=1800)}, appFlask.config['SECRET_KEY'])
-        return token.decode('UTF-8')
-    return "Login Required"
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
 
-if __name__ == '__main__':
-    appFlask.run(debug=True)
+        cur.execute("SELECT * from users where username = %s", (username))
+        user = cur.fetchone()
+        print(user)
+        if user:
+            if(user.pass_hash == password):
+                flash('Logged in successfully!', category='success')
+                login_user(user, remember=True)
+                return redirect(url_for('views.home'))
+            else:
+                flash('Incorrect password, try again.', category='error')
+        else:
+            flash('username does not exist.', category='error')
+
+    return render_template("login.html", user=current_user)

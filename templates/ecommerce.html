@@ -14,10 +14,6 @@
 
 <body style = "text-align:center;" id = "body">
 	
-	<h1 style = "color:green;" >
-		GeeksForGeeks
-	</h1>
-	
 	<p id = "GFG_UP" style =
 		"font-size: 15px; font-weight: bold;">
 	</p>
@@ -29,18 +25,14 @@
 	
 	<br><br>
 	
-	<table align = "center"
-			id="table" border="1">
+	<table align-contents = "center"
+			id="table" borders="1">
 	</table>
 	
 	<script>
 		var el_up = document.getElementById("GFG_UP");
 		
-		var list = [
-			{ "col_1": "val_11", "col_3": "val_13" },
-			{ "col_2": "val_22", "col_3": "val_23" },
-			{ "col_1": "val_31", "col_3": "val_33" }
-		];
+		var list = '{{data}}';
 		
 		el_up.innerHTML = "Click on the button to create "
 				+ "the table from the JSON data.<br><br>"

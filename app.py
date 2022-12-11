@@ -9,8 +9,12 @@ import simplejson
 import datetime
 import pymysql
 import jwt
+from flask_login import login_user, login_required, logout_user, current_user
+from flask import Blueprint, render_template, request, flash, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'aduhAPIpanas'
 
 # conn = pymysql.connect(
 #     user="sql6581671",
@@ -31,7 +35,6 @@ conn = pymysql.connect(
     autocommit=True
 )
 
-mysql = MySQL(app)
 cur = conn.cursor()
 app.config['SECRET_TOKEN'] = 'aduhAPIpanas'
 
@@ -47,23 +50,23 @@ def home():
 
 @app.route("/ecommerce", methods = ['GET'])
 def ecommerce():
-    return render_template("ecommerce.html")
-
-@app.route("/ecommerce/getall", methods = ['GET'])
-def ecommerce():
     cur.execute("SELECT * FROM ecommerce")
-    rv = cur.fetchall()  
-    return jsonify(rv)
+    row_headers=[x[0] for x in cur.description] #this will extract row headers
+    rv = cur.fetchall()
+    json_data=[]
+    for result in rv:
+        json_data.append(dict(zip(row_headers,result)))
+    return render_template("ecommerce.html",data=jsonify(json_data))
 
 @app.route("/uscovid", methods = ['GET'])
 def uscovid():
-    return render_template("uscovid.html")
-
-@app.route("/uscovid/getall", methods = ['GET'])
-def uscovid():
     cur.execute("SELECT * FROM uscovid")
-    rv = cur.fetchall()  
-    return jsonify(rv)
+    row_headers=[x[0] for x in cur.description] #this will extract row headers
+    rv = cur.fetchall()
+    json_data=[]
+    for result in rv:
+        json_data.append(dict(zip(row_headers,result)))
+    return render_template("ecommerce.html",data=jsonify(json_data))
 
 @app.route("/uscovid/insert", methods=['POST'])
 #http://127.0.0.1:5000/uscovid/insert?date="04-04-2022"&county="Jakarta"&state="DKI"&cases=3
@@ -164,9 +167,23 @@ def deleteecommerce():
     except Exception as e:
         print(e)      
 
-@app.route('login')
-def login():
-    return render_template(login.html)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        cur.execute("SELECT * from users where username = %s", (username))
+        user = cur.fetchone()
+        print(user)
+        if user:
+            if(user["pass_hash"] == password):
+                flash('Logged in successfully!', category='success')
+                return redirect(url_for('ecommerce'))
+            else:
+                flash('Incorrect password, try again.', category='error')
+        else:
+            flash('username does not exist.', category='error')
+
+    return render_template("login.html", user=current_user)        
