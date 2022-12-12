@@ -1,6 +1,6 @@
-{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Sign Up{% endblock %} {% block content %}
     <form method="POST">
-      <h3 align-contents="center">Login</h3>
+      <h3 align-contents="center">Sign Up</h3>
       <div class="form-group">
         <label for="username">Username</label>
         <input
@@ -22,8 +22,7 @@
         />
       </div>
       <br />
-      <button type="submit" class="btn btn-primary">Login</button>
-      <a href="/getotp"><button class="btn btn-primary">Login OTP</button></a>
+      <button type="submit" class="btn btn-primary">Register</button>
       <!-- <div class="buat-token"></div>
       <script>
         var token = '{{token}}';

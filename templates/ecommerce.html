@@ -13,78 +13,33 @@
 </head>
 
 <body style = "text-align:center;" id = "body">
-	
-	<p id = "GFG_UP" style =
-		"font-size: 15px; font-weight: bold;">
-	</p>
-
-	
-	<button onclick = "constructTable('#table')">
-		click here
-	</button>
-	
-	<br><br>
-	
-	<table align-contents = "center"
-			id="table" borders="1">
-	</table>
-	
-	<script>
-		var el_up = document.getElementById("GFG_UP");
-		
-		var list = '{{data}}';
-		
-		el_up.innerHTML = "Click on the button to create "
-				+ "the table from the JSON data.<br><br>"
-				+ JSON.stringify(list[0]) + "<br>"
-				+ JSON.stringify(list[1]) + "<br>"
-				+ JSON.stringify(list[2]);
-			
-		function constructTable(selector) {
-			
-			// Getting the all column names
-			var cols = Headers(list, selector);
-
-			// Traversing the JSON data
-			for (var i = 0; i < list.length; i++) {
-				var row = $('<tr/>');
-				for (var colIndex = 0; colIndex < cols.length; colIndex++)
-				{
-					var val = list[i][cols[colIndex]];
-					
-					// If there is any key, which is matching
-					// with the column name
-					if (val == null) val = "";
-						row.append($('<td/>').html(val));
-				}
-				
-				// Adding each row to the table
-				$(selector).append(row);
-			}
-		}
-		
-		function Headers(list, selector) {
-			var columns = [];
-			var header = $('<tr/>');
-			
-			for (var i = 0; i < list.length; i++) {
-				var row = list[i];
-				
-				for (var k in row) {
-					if ($.inArray(k, columns) == -1) {
-						columns.push(k);
-						
-						// Creating the header
-						header.append($('<th/>').html(k));
-					}
-				}
-			}
-			
-			// Appending the header to the table
-			$(selector).append(header);
-				return columns;
-		}	
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img src="http://drive.google.com/uc?export=view&id=1_W2Pddxm9aOlw952iTj-mKqCWNwCgReM" alt="Logo TST" style="width:50px;height:50px">
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="./">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/ecommerce">Ecommerce</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/uscovid">US Covid</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+	  <div class="json-data" data-data='{{ data|tojson }}'></div>
+	  <script>var data = JSON.parse(document.getElementById("mydiv").dataset.data);
 	</script>
-</body>
+	</body>
 
 </html>

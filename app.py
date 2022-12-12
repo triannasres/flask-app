@@ -1,5 +1,4 @@
-from flask import Flask, render_template
-from flask_mysqldb import MySQL
+from flask import Flask, render_template, session
 from flask import jsonify
 from flask import request
 import pymysql 
@@ -12,6 +11,8 @@ import jwt
 from flask_login import login_user, login_required, logout_user, current_user
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'aduhAPIpanas'
@@ -36,37 +37,37 @@ conn = pymysql.connect(
 )
 
 cur = conn.cursor()
-app.config['SECRET_TOKEN'] = 'aduhAPIpanas'
 
-cur = conn.cursor()
+def token_required(f):
+    @wraps(f)
+    def token_dec(*args, **kwargs):
+        token = request.args.get('token')
+        if not token:
+            return "Missing Token!"
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], ['HS256'])
+        except:
+            return "Invalid Token"
+        return f(*args, **kwargs)
+    return token_dec
 
 @app.route('/')
 def home():
-    # try:
-    #     validate_token()
-    # except Exception as e:
-    #     return e.args[0],401
     return render_template('index.html')
 
 @app.route("/ecommerce", methods = ['GET'])
+@token_required
 def ecommerce():
     cur.execute("SELECT * FROM ecommerce")
-    row_headers=[x[0] for x in cur.description] #this will extract row headers
     rv = cur.fetchall()
-    json_data=[]
-    for result in rv:
-        json_data.append(dict(zip(row_headers,result)))
-    return render_template("ecommerce.html",data=jsonify(json_data))
+    return rv
 
 @app.route("/uscovid", methods = ['GET'])
+@token_required
 def uscovid():
     cur.execute("SELECT * FROM uscovid")
-    row_headers=[x[0] for x in cur.description] #this will extract row headers
     rv = cur.fetchall()
-    json_data=[]
-    for result in rv:
-        json_data.append(dict(zip(row_headers,result)))
-    return render_template("ecommerce.html",data=jsonify(json_data))
+    return rv
 
 @app.route("/uscovid/insert", methods=['POST'])
 #http://127.0.0.1:5000/uscovid/insert?date="04-04-2022"&county="Jakarta"&state="DKI"&cases=3
@@ -168,22 +169,76 @@ def deleteecommerce():
         print(e)      
 
 
+@app.route('/signup',methods=['GET','POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if not username or not password:
+            return "Please provide username and password"
+
+        pass_hash = (password)
+        cur.execute('SELECT * FROM users WHERE username = %s', (username,))
+
+        if cur.rowcount > 0:
+            return "Username already exist"
+        
+        cur.execute('INSERT INTO users (username, pass_hash) VALUES (%s, %s)', (username, pass_hash))
+        flash("Sign Up successful, please login to get jwt token")
+        return redirect('login')
+    return render_template('sign-up.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
-        cur.execute("SELECT * from users where username = %s", (username))
-        user = cur.fetchone()
-        print(user)
-        if user:
-            if(user["pass_hash"] == password):
-                flash('Logged in successfully!', category='success')
-                return redirect(url_for('ecommerce'))
-            else:
-                flash('Incorrect password, try again.', category='error')
-        else:
-            flash('username does not exist.', category='error')
+        if not username or not password:
+            return redirect('getotp')
 
-    return render_template("login.html", user=current_user)        
+        cur.execute('SELECT * FROM users WHERE username = %s', (username))
+        user = cur.fetchone()
+        
+        if cur.rowcount > 0:
+            if (user['pass_hash'] == password):
+                flash('Logged in successfully!', category='success')
+                pass_hash = user['pass_hash']
+                token = jwt.encode({
+                    'username': username,
+                    'pass_hash': pass_hash,
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                }, app.config['SECRET_KEY']
+                )
+                flash(token)
+                return render_template("login.html", token=token)
+            else:
+                return "Incorrect password"
+        else:
+            return "User not found"
+    return render_template("login.html") 
+
+@app.route('/getotp')
+def getotp():
+    otp = random.randint(100000,999999) 
+    session['otp'] = otp
+    return redirect(url_for('loginotp'))
+
+@app.route('/loginotp', methods=['GET', 'POST'])
+def loginotp():
+    otp = session.get('otp', None)
+    if request.method == 'POST':
+        one = request.form.get('otp')
+        if(int(one) == int(otp)):
+            token = jwt.encode({
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                }, app.config['SECRET_KEY']
+                )
+            flash(token)
+            return token
+        else:
+            return "Wrong OTP"
+    elif(request.method == "GET"):
+        flash(otp)
+    return render_template("loginotp.html")
