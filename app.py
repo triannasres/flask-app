@@ -82,14 +82,14 @@ def getproductbycity():
 
 @app.route("/ecommerce/total", methods = ['GET'])
 @token_required
-def gettotal():
+def gettotalecommerce():
     cur.execute("select city, sum(price_each*quantity_ordered) as total from ecommerce group by city order by total desc;")
     rv = cur.fetchall()
     return rv
 
 @app.route("/ecommerce/covidpattern", methods = ['GET'])
 @token_required
-def gettotal():
+def getcovidpattern():
     cur.execute("select city, product,quantity_ordered,price_each, sum(cases) FROM ecommerce e join uscovid u ON e.city LIKE '%' || u.county || '%' GROUP BY city, cases, product, price_each, quantity_ordered;;")
     rv = cur.fetchall()
     return rv
