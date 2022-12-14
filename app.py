@@ -1,21 +1,21 @@
-from flask import Flask, render_template, session
-from flask import jsonify
-from flask import request
 import pymysql
-from werkzeug.security import check_password_hash, generate_password_hash
-import simplejson
 import datetime
 import pymysql
 import jwt
-from flask import render_template, request, flash, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import render_template, request, flash, redirect, url_for, session, jsonify, Flask
 from functools import wraps
 import random
+from wsgiref.simple_server import make_server
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'aduhAPIpanas'
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000)
-app.config['SECRET_KEY'] = 'aduhAPIpanas'
+def Web_App(environment,response):
+    status='200 OK'
+with make_server('',5000,Web_App) as server:
+    print('serving on port 5000...\nvisit http://127.0.0.1:5000\nTo exit press ctrl + c')
+    server.serve_forever()
 
 # conn = pymysql.connect(
 #     user="sql6581671",
