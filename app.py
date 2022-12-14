@@ -5,13 +5,12 @@ import jwt
 from flask import render_template, request, flash, redirect, url_for, session, jsonify, Flask
 from functools import wraps
 import random
-from wsgiref.simple_server import make_server
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'aduhAPIpanas'
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000)
-
 
 # conn = pymysql.connect(
 #     user="sql6581671",
