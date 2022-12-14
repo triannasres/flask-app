@@ -71,6 +71,7 @@ def uscovid():
 
 @app.route("/uscovid/insert", methods=['POST'])
 #http://127.0.0.1:5000/uscovid/insert?date="04-04-2022"&county="Jakarta"&state="DKI"&cases=3
+@token_required
 def insertuscovid():
     try:
         sqlQuery = "INSERT INTO uscovid(date, county, state, cases) VALUES(%s, %s, %s, %s)"
@@ -86,6 +87,7 @@ def insertuscovid():
         print(e)    
 
 @app.route("/uscovid/update", methods = ['PUT'])
+@token_required
 def updateuscovid():
     try:
         sqlQuery = "UPDATE uscovid SET county=%s, state=%s, cases=%s WHERE date=%s"
@@ -101,6 +103,7 @@ def updateuscovid():
         print(e)
 
 @app.route('/uscovid/delete', methods=['DELETE'])
+@token_required
 def deleteuscovid():
     try:		
         sqlQuery = "DELETE from uscovid where county=%s and state=%s"
@@ -125,6 +128,7 @@ def showMessage(error=None):
 
 @app.route("/ecommerce/insert", methods=['POST'])
 #http://127.0.0.1:5000/ecommerce/insert?order_id=1901&product="AYAM GORENG KUNING"&quantity_ordered=5&price_each=3&city="Jakarta"
+@token_required
 def insertecommerce():
     try:
         sqlQuery = "INSERT INTO ecommerce(order_id, product, quantity_ordered, price_each, city) VALUES(%s, %s, %s, %s, %s)"
@@ -141,6 +145,7 @@ def insertecommerce():
         print(e)    
 
 @app.route("/ecommerce/update", methods = ['PUT'])
+@token_required
 def updateecommerce():
     try:
         sqlQuery = "UPDATE ecommerce SET product=%s, quantity_ordered=%s, price_each=%s, city=%s WHERE order_id=%s"
@@ -157,6 +162,7 @@ def updateecommerce():
         print(e)
 
 @app.route('/ecommerce/delete', methods=['DELETE'])
+@token_required
 def deleteecommerce():
     try:		
         sqlQuery = "DELETE from ecommerce where order_id=%s"
