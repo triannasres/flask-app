@@ -26,11 +26,20 @@ app.config['SECRET_KEY'] = 'aduhAPIpanas'
 #     cursorclass=pymysql.cursors.DictCursor,
 #     autocommit=True
 # )
+# conn = pymysql.connect(
+#     user="root",
+#     password="", #GANTI PASSWORDNYA
+#     host="127.0.0.1",
+#     port=3306,
+#     database="tubestst",
+#     cursorclass=pymysql.cursors.DictCursor,
+#     autocommit=True
+# )
 conn = pymysql.connect(
-    user="root",
-    password="", #GANTI PASSWORDNYA
-    host="127.0.0.1",
-    port=3306,
+    user="doadmin",
+    password="AVNS_fq5jSrfRZwgjmjeSQIR", 
+    host="tubes-tst-kelompok-10-k02-do-user-12982385-0.b.db.ondigitalocean.com",
+    port=25060,
     database="tubestst",
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
@@ -74,8 +83,9 @@ def uscovid():
 @token_required
 def insertuscovid():
     try:
-        sqlQuery = "INSERT INTO uscovid(date, county, state, cases) VALUES(%s, %s, %s, %s)"
-        bindData = (request.args.get('date'), 
+        sqlQuery = "INSERT INTO uscovid(case_id,date, county, state, cases) VALUES(%s,%s, %s, %s, %s)"
+        bindData = (request.args.get('case_id',type=int), 
+        request.args.get('date'), 
         request.args.get('county'), 
         request.args.get('state'), 
         request.args.get('cases',type=int))            
@@ -90,11 +100,11 @@ def insertuscovid():
 @token_required
 def updateuscovid():
     try:
-        sqlQuery = "UPDATE uscovid SET county=%s, state=%s, cases=%s WHERE date=%s"
+        sqlQuery = "UPDATE uscovid SET county=%s, state=%s, cases=%s WHERE case_id=%s"
         bindData = (request.args.get('county'), 
         request.args.get('state'), 
         request.args.get('cases', type=int), 
-        request.args.get('date'))
+        request.args.get('case_id',type=int))
         cur.execute(sqlQuery, bindData)
         response = jsonify('Covid data updated successfully!')
         response.status_code = 200
