@@ -73,6 +73,41 @@ def uscovid():
     rv = cur.fetchall()
     return rv
 
+@app.route("/ecommerce/productcity", methods = ['GET'])
+@token_required
+def getproductbycity():
+    cur.execute(" select product, (quantity_ordered*price_each) as total, city from ecommerce group by product, city, total order by product asc")
+    rv = cur.fetchall()
+    return rv
+
+@app.route("/ecommerce/total", methods = ['GET'])
+@token_required
+def gettotal():
+    cur.execute("select city, sum(price_each*quantity_ordered) as total from ecommerce group by city order by total desc;")
+    rv = cur.fetchall()
+    return rv
+
+@app.route("/ecommerce/covidpattern", methods = ['GET'])
+@token_required
+def gettotal():
+    cur.execute("select city, product,quantity_ordered,price_each, sum(cases) FROM ecommerce e join uscovid u ON e.city LIKE '%' || u.county || '%' GROUP BY city, cases, product, price_each, quantity_ordered;;")
+    rv = cur.fetchall()
+    return rv
+
+@app.route("/uscovid/totalcase", methods = ['GET'])
+@token_required
+def gettotalcase():
+    cur.execute("SELECT state, county, cases FROM uscovid GROUP BY state, county, cases ORDER BY cases desc")
+    rv = cur.fetchall()
+    return rv
+
+@app.route("/uscovid/allocation", methods = ['GET'])
+@token_required
+def getallocation():
+    cur.execute("SELECT city, SUM(price_each) FROM ecommerce e JOIN uscovid u ON e.city LIKE '%' || u.county || '%' GROUP BY city")
+    rv = cur.fetchall()
+    return rv
+
 @app.route("/uscovid/insert", methods=['POST'])
 #http://127.0.0.1:5000/uscovid/insert?date="04-04-2022"&county="Jakarta"&state="DKI"&cases=3
 @token_required
