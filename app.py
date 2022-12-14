@@ -1,15 +1,13 @@
 from flask import Flask, render_template, session
 from flask import jsonify
 from flask import request
-import pymysql 
-import auth
+import pymysql
 from werkzeug.security import check_password_hash, generate_password_hash
 import simplejson
 import datetime
 import pymysql
 import jwt
-from flask_login import login_user, login_required, logout_user, current_user
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import random
