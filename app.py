@@ -112,11 +112,17 @@ def gettotalcase():
     rv = cur.fetchall()
     return rv
 
-@app.route("/allocation", methods = ['GET'])
+@app.route("/uscovid/allocation", methods = ['GET'])
+@token_required
 def getallocation():
-    url = "https://starfish-app-vepuj.ondigitalocean.app/tubeststkelompok102/"
-    var = requests.urlopen(url)
-    return var
+    username = request.args.get('username')
+    password = request.args.get('password')
+    url = f"https://starfish-app-vepuj.ondigitalocean.app/tubeststkelompok102/login?username={username}&password={password}"
+    token = requests.post(url)
+
+    url2 = f"https://starfish-app-vepuj.ondigitalocean.app/tubeststkelompok102/ecommerce/total?token={token.text}"
+    result = requests.get(url2)
+    return result.text
 
 @app.errorhandler(404)
 def showMessage(error=None):
@@ -155,7 +161,10 @@ def login():
         password = request.form.get('password')
 
         if not username or not password:
-            return redirect('getotp')
+            username = request.args.get('username')
+            password = request.args.get('password')
+            if not username or not password:
+                return redirect('getotp')
 
         cur.execute('SELECT * FROM users WHERE username = %s', (username))
         user = cur.fetchone()
@@ -170,13 +179,12 @@ def login():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
                 }, app.config['SECRET_KEY']
                 )
-                flash(token)
-                return render_template("login.html", token=token)
+                return(token)
             else:
                 return "Incorrect password"
         else:
             return "User not found"
-    return render_template("login.html") 
+    return render_template("login.html")
 
 @app.route('/getotp')
 def getotp():
