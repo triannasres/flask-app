@@ -122,7 +122,8 @@ def getallocation():
 
     url2 = f"https://starfish-app-vepuj.ondigitalocean.app/tubeststkelompok102/ecommerce/total?token={token.text}"
     result = requests.get(url2)
-    return result.text
+    totalcase = gettotalcase()
+    return result.text + str(totalcase)
 
 @app.errorhandler(404)
 def showMessage(error=None):
