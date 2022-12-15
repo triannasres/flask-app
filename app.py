@@ -2,36 +2,26 @@ from flask import Flask, render_template, session
 from flask import jsonify
 from flask import request
 import pymysql 
-import auth
-from werkzeug.security import check_password_hash, generate_password_hash
-import simplejson
 import datetime
 import pymysql
 import jwt
-from flask_login import login_user, login_required, logout_user, current_user
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import render_template, request, flash, redirect, url_for
 from functools import wraps
 import random
+import requests
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'aduhAPIpanas'
 
-# conn = pymysql.connect(
-#     user="sql6581671",
-#     password="NuYPGjXERw", 
-#     host="sql6.freemysqlhosting.net",
-#     port=3306,
-#     database="sql6581671",
-#     cursorclass=pymysql.cursors.DictCursor,
-#     autocommit=True
-# )
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=8080)
+
 conn = pymysql.connect(
-    user="root",
-    password="", #GANTI PASSWORDNYA
-    host="127.0.0.1",
-    port=3306,
-    database="tubestst",
+    user = 'doadmin',
+    password = 'AVNS_fq5jSrfRZwgjmjeSQIR',
+    host = 'tubes-tst-kelompok-10-k02-do-user-12982385-0.b.db.ondigitalocean.com',
+    port = 25060,
+    database = 'tubestst',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -55,17 +45,19 @@ def token_required(f):
 def home():
     return render_template('index.html')
 
-@app.route("/ecommerce", methods = ['GET'])
-@token_required
-def ecommerce():
-    cur.execute("SELECT * FROM ecommerce")
-    rv = cur.fetchall()
-    return rv
-
 @app.route("/uscovid", methods = ['GET'])
 @token_required
 def uscovid():
     cur.execute("SELECT * FROM uscovid")
+    rv = cur.fetchall()
+    return rv
+
+@app.route("/uscovid/state", methods = ['GET'])
+@token_required
+def statefil():
+    sqlQuery = "SELECT * FROM uscovid WHERE state=%s"
+    bindData = request.args.get('state')
+    cur.execute(sqlQuery, bindData)
     rv = cur.fetchall()
     return rv
 
@@ -113,6 +105,19 @@ def deleteuscovid():
     except Exception as e:
         print(e)
 
+@app.route("/uscovid/totalcase", methods = ['GET'])
+@token_required
+def gettotalcase():
+    cur.execute("SELECT county, state, SUM(cases) AS 'Total' from uscovid group by state, county")
+    rv = cur.fetchall()
+    return rv
+
+@app.route("/allocation", methods = ['GET'])
+def getallocation():
+    url = "https://starfish-app-vepuj.ondigitalocean.app/tubeststkelompok102/"
+    var = requests.urlopen(url)
+    return var
+
 @app.errorhandler(404)
 def showMessage(error=None):
     message = {
@@ -122,52 +127,6 @@ def showMessage(error=None):
     response = jsonify(message)
     response.status_code = 404
     return response  
-
-@app.route("/ecommerce/insert", methods=['POST'])
-#http://127.0.0.1:5000/ecommerce/insert?order_id=1901&product="AYAM GORENG KUNING"&quantity_ordered=5&price_each=3&city="Jakarta"
-def insertecommerce():
-    try:
-        sqlQuery = "INSERT INTO ecommerce(order_id, product, quantity_ordered, price_each, city) VALUES(%s, %s, %s, %s, %s)"
-        bindData = (request.args.get('order_id',type=int), 
-        request.args.get('product'), 
-        request.args.get('quantity_ordered',type=int), 
-        request.args.get('price_each',type=int),           
-        request.args.get('city'))           
-        cur.execute(sqlQuery, bindData)
-        response = jsonify('Ecommerce data added successfully!')
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)    
-
-@app.route("/ecommerce/update", methods = ['PUT'])
-def updateecommerce():
-    try:
-        sqlQuery = "UPDATE ecommerce SET product=%s, quantity_ordered=%s, price_each=%s, city=%s WHERE order_id=%s"
-        bindData = (request.args.get('product'), 
-        request.args.get('quantity_ordered',type=int), 
-        request.args.get('price_each', type=int), 
-        request.args.get('city'),
-        request.args.get('order_id',type=int))
-        cur.execute(sqlQuery, bindData)
-        response = jsonify('Ecommerce data updated successfully!')
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)
-
-@app.route('/ecommerce/delete', methods=['DELETE'])
-def deleteecommerce():
-    try:		
-        sqlQuery = "DELETE from ecommerce where order_id=%s"
-        bindData = (request.args.get('order_id',type=int))
-        cur.execute(sqlQuery, bindData)
-        response = jsonify('Ecommerce deleted successfully!')
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)      
-
 
 @app.route('/signup',methods=['GET','POST'])
 def signup():
@@ -242,3 +201,5 @@ def loginotp():
     elif(request.method == "GET"):
         flash(otp)
     return render_template("loginotp.html")
+
+
