@@ -269,7 +269,7 @@ def login():
 def getotp():
     otp = random.randint(100000,999999) 
     session['otp'] = otp
-    return redirect(url_for('tubeststkelompok102/loginotp'))
+    return redirect(url_for('loginotp'))
 
 @app.route('/loginotp', methods=['GET', 'POST'])
 def loginotp():
