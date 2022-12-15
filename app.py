@@ -92,13 +92,6 @@ def ecommerceproduct():
     except Exception as e:
         print(e)    
 
-@app.route("/uscovid", methods = ['GET'])
-@token_required
-def uscovid():
-    cur.execute("SELECT * FROM uscovid")
-    rv = cur.fetchall()
-    return rv
-
 @app.route("/ecommerce/productcity", methods = ['GET'])
 @token_required
 def getproductbycity():
@@ -119,68 +112,6 @@ def getcovidpattern():
     cur.execute("select city, product,quantity_ordered,price_each, sum(cases) FROM ecommerce e join uscovid u ON e.city LIKE '%' || u.county || '%' GROUP BY city, cases, product, price_each, quantity_ordered;;")
     rv = cur.fetchall()
     return rv
-
-@app.route("/uscovid/totalcase", methods = ['GET'])
-@token_required
-def gettotalcase():
-    cur.execute("SELECT state, county, cases FROM uscovid GROUP BY state, county, cases ORDER BY cases desc")
-    rv = cur.fetchall()
-    return rv
-
-@app.route("/uscovid/allocation", methods = ['GET'])
-@token_required
-def getallocation():
-    cur.execute("SELECT city, SUM(price_each) FROM ecommerce e JOIN uscovid u ON e.city LIKE '%' || u.county || '%' GROUP BY city")
-    rv = cur.fetchall()
-    return rv
-
-@app.route("/uscovid/insert", methods=['POST'])
-#http://127.0.0.1:5000/uscovid/insert?date="04-04-2022"&county="Jakarta"&state="DKI"&cases=3
-@token_required
-def insertuscovid():
-    try:
-        sqlQuery = "INSERT INTO uscovid(case_id,date, county, state, cases) VALUES(%s,%s, %s, %s, %s)"
-        bindData = (request.args.get('case_id',type=int), 
-        request.args.get('date'), 
-        request.args.get('county'), 
-        request.args.get('state'), 
-        request.args.get('cases',type=int))            
-        cur.execute(sqlQuery, bindData)
-        response = jsonify('Covid data added successfully!')
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)    
-
-@app.route("/uscovid/update", methods = ['PUT'])
-@token_required
-def updateuscovid():
-    try:
-        sqlQuery = "UPDATE uscovid SET county=%s, state=%s, cases=%s WHERE case_id=%s"
-        bindData = (request.args.get('county'), 
-        request.args.get('state'), 
-        request.args.get('cases', type=int), 
-        request.args.get('case_id',type=int))
-        cur.execute(sqlQuery, bindData)
-        response = jsonify('Covid data updated successfully!')
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)
-
-@app.route('/uscovid/delete', methods=['DELETE'])
-@token_required
-def deleteuscovid():
-    try:		
-        sqlQuery = "DELETE from uscovid where county=%s and state=%s"
-        bindData = (request.args.get('county'), 
-        request.args.get('state'))
-        cur.execute(sqlQuery, bindData)
-        response = jsonify('Covid data deleted successfully!')
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)
 
 @app.errorhandler(404)
 def showMessage(error=None):
