@@ -66,6 +66,32 @@ def ecommerce():
     rv = cur.fetchall()
     return rv
 
+@app.route("/ecommerce/city", methods = ['GET'])
+@token_required
+def ecommercecity():
+    try:
+        city = (request.args.get("city"))
+        limit = (request.args.get("limit",type=int))
+        sqlQuery = f"select * from ecommerce where city like '%{city}%' limit {limit}"          
+        cur.execute(sqlQuery)
+        response = cur.fetchall()
+        return response    
+    except Exception as e:
+        print(e)
+
+@app.route("/ecommerce/product", methods = ['GET'])
+@token_required
+def ecommerceproduct():
+    try:
+        product = (request.args.get("product"))
+        limit = (request.args.get("limit",type=int))
+        sqlQuery = f"select * from ecommerce where product like '%{product}%' limit {limit}"        
+        cur.execute(sqlQuery)
+        response = cur.fetchall()
+        return response   
+    except Exception as e:
+        print(e)    
+
 @app.route("/uscovid", methods = ['GET'])
 @token_required
 def uscovid():
@@ -76,7 +102,7 @@ def uscovid():
 @app.route("/ecommerce/productcity", methods = ['GET'])
 @token_required
 def getproductbycity():
-    cur.execute(" select product, (quantity_ordered*price_each) as total, city from ecommerce group by product, city, total order by product asc")
+    cur.execute("select product, (quantity_ordered*price_each) as total, city from ecommerce group by product, city, total order by product asc")
     rv = cur.fetchall()
     return rv
 
@@ -222,7 +248,8 @@ def signup():
         password = request.form.get('password')
 
         if not username or not password:
-            return "Please provide username and password"
+            username = request.args.get('username')
+            password = request.args.get('password')
 
         pass_hash = (password)
         cur.execute('SELECT * FROM users WHERE username = %s', (username,))
@@ -242,7 +269,10 @@ def login():
         password = request.form.get('password')
 
         if not username or not password:
-            return redirect('getotp')
+            username = request.args.get('username')
+            password = request.args.get('password')
+            if not username or not password:
+                return redirect('getotp')
 
         cur.execute('SELECT * FROM users WHERE username = %s', (username))
         user = cur.fetchone()
@@ -257,8 +287,7 @@ def login():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
                 }, app.config['SECRET_KEY']
                 )
-                flash(token)
-                return render_template("login.html", token=token)
+                return(token)
             else:
                 return "Incorrect password"
         else:
@@ -281,7 +310,6 @@ def loginotp():
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
                 }, app.config['SECRET_KEY']
                 )
-            flash(token)
             return token
         else:
             return "Wrong OTP"
