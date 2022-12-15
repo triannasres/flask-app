@@ -119,14 +119,12 @@ def getcovidpattern():
 def getcovidandcitytotal():
     username = request.args.get("username")
     password = request.args.get("password")
-    tokenbembi = request.args.get("token")
     url = f"https://tinidtinidtinid-e9cj4.ondigitalocean.app/tubeststkelompok102/login?username={username}&password={password}"
     token = requests.post(url)
     url2 = f"https://tinidtinidtinid-e9cj4.ondigitalocean.app/tubeststkelompok102/uscovid/totalcase?token={token.text}"
     coviddata = requests.get(url2)
-    url4 = f"https://starfish-app-vepuj.ondigitalocean.app/tubeststkelompok102/ecommerce/total?token={tokenbembi}"
-    ecommercedata = requests.get(url4)
-    return coviddata.text + ecommercedata.text
+    ecommercedata = gettotalecommerce()
+    return coviddata.text + str(ecommercedata)
 
 @app.errorhandler(404)
 def showMessage(error=None):
